@@ -117,7 +117,8 @@
 
 #include <map>
 #include <stdio.h>
-
+#include <fstream>
+#include <string>
 namespace pbrt {
 
 // API Global Variables
@@ -128,6 +129,10 @@ PBRT_CONSTEXPR int MaxTransforms = 2;
 PBRT_CONSTEXPR int StartTransformBits = 1 << 0;
 PBRT_CONSTEXPR int EndTransformBits = 1 << 1;
 PBRT_CONSTEXPR int AllTransformsBits = (1 << MaxTransforms) - 1;
+//////////////////////////////////////////////////////////////////////
+static std::ofstream fout("fur.curve", std::ios::out | std::ios::binary);
+static int fur_file_count = 0;
+//////////////////////////////////////////////////////////////////////
 struct TransformSet {
     // TransformSet Public Methods
     Transform &operator[](int i) {
@@ -432,6 +437,7 @@ std::vector<std::shared_ptr<Shape>> MakeShapes(const std::string &name,
                                                const Transform *world2object,
                                                bool reverseOrientation,
                                                const ParamSet &paramSet) {
+
     std::vector<std::shared_ptr<Shape>> shapes;
     std::shared_ptr<Shape> s;
     if (name == "sphere")
@@ -456,9 +462,14 @@ std::vector<std::shared_ptr<Shape>> MakeShapes(const std::string &name,
     if (s != nullptr) shapes.push_back(s);
 
     // Create multiple-_Shape_ types
-    else if (name == "curve")
+    else if (name == "curve"){
+        //char filename[50];
+        //sprintf(filename,"fur%d.curve",fur_file_count++);
+        //fout.open(filename, std::ios::out | std::ios::binary);
         shapes = CreateCurveShape(object2world, world2object,
-                                  reverseOrientation, paramSet);
+                                  reverseOrientation, paramSet,fout);
+        //fout.close();
+    }
     else if (name == "trianglemesh") {
         if (PbrtOptions.toPly) {
             int nvi;
@@ -1593,6 +1604,9 @@ void pbrtObjectInstance(const std::string &name) {
 
 void pbrtWorldEnd() {
     VERIFY_WORLD("WorldEnd");
+    /////////////////////////////////////////////////
+    fout.close();
+    /////////////////////////////////////////////////
     // Ensure there are no pushed graphics states
     while (pushedGraphicsStates.size()) {
         Warning("Missing end to pbrtAttributeBegin()");
@@ -1620,7 +1634,7 @@ void pbrtWorldEnd() {
         CHECK_EQ(CurrentProfilerState(), ProfToBits(Prof::SceneConstruction));
         ProfilerState = ProfToBits(Prof::IntegratorRender);
 
-        if (scene && integrator) integrator->Render(*scene);
+        //if (scene && integrator) integrator->Render(*scene);
 
         CHECK_EQ(CurrentProfilerState(), ProfToBits(Prof::IntegratorRender));
         ProfilerState = ProfToBits(Prof::SceneConstruction);

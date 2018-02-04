@@ -90,7 +90,7 @@ class Curve : public Shape {
 std::vector<std::shared_ptr<Shape>> CreateCurveShape(const Transform *o2w,
                                                      const Transform *w2o,
                                                      bool reverseOrientation,
-                                                     const ParamSet &params);
+                                                     const ParamSet &params,std::ofstream&);
 
 }  // namespace pbrt
 
